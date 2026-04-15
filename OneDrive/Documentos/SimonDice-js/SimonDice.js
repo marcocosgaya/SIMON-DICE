@@ -1,6 +1,5 @@
 const readline = require("readline");
 
-
 const tColores = {
     Rojo: 0,
     Verde: 1,
@@ -9,8 +8,6 @@ const tColores = {
 };
 
 const MAX_COLORES_SEQ = 50;
-
-
 
 function charToColor(color) {
     if (!color || typeof color !== "string") return null;
@@ -25,39 +22,24 @@ function charToColor(color) {
     return null;
 }
 
-
-
 function intToColor(numero) {
-    for (let nombre in tColores) {
-        if (tColores[nombre] === numero) {
-            return tColores[nombre];
-        }
-    }
-    return null;
+    return Object.values(tColores).includes(numero) ? numero : null;
 }
-
-
-
 
 function generarSecuencia(numColores) {
     const secuencia = [];
 
     for (let i = 0; i < MAX_COLORES_SEQ; i++) {
-        const aleatorio = Math.floor(Math.random() * (numColores + 1));
+        const aleatorio = Math.floor(Math.random() * numColores); // 0..3
         secuencia.push(intToColor(aleatorio));
     }
 
     return secuencia;
 }
 
-
-
 function comprobarColor(secuenciaColores, indice, color) {
     return secuenciaColores[indice] === color;
 }
-
-
-
 
 function mostrarSecuencia(secuenciaColores, numero) {
     console.log("Memoriza la secuencia:");
@@ -79,18 +61,16 @@ function mostrarSecuencia(secuenciaColores, numero) {
     console.log("\nPulsa Enter para continuar...");
 }
 
-
-
-
 async function comenzarJuego(nombre, rl) {
     console.log(`Bienvenido, ${nombre}. ¡Comienza el juego!`);
 
-    const numColores = 3; // 0..3 → 4 colores
+    const numColores = 4; // 4 colores: 0..3
     const secuencia = generarSecuencia(numColores);
 
     let longitudActual = 3;
+    let seguirJugando = true;
 
-    while (longitudActual <= MAX_COLORES_SEQ) {
+    while (longitudActual <= MAX_COLORES_SEQ && seguirJugando) {
 
         mostrarSecuencia(secuencia, longitudActual);
 
@@ -101,7 +81,7 @@ async function comenzarJuego(nombre, rl) {
 
         let correcto = true;
 
-        for (let i = 0; i < longitudActual; i++) {
+        for (let i = 0; i < longitudActual && correcto; i++) {
             const entrada = await new Promise(resolve => rl.question(`Color ${i + 1}: `, resolve));
 
             const colorUsuario = charToColor(entrada);
@@ -109,32 +89,27 @@ async function comenzarJuego(nombre, rl) {
             if (colorUsuario === null) {
                 console.log("Color no válido.");
                 correcto = false;
-                break;
-            }
-
-            if (!comprobarColor(secuencia, i, colorUsuario)) {
+            } else if (!comprobarColor(secuencia, i, colorUsuario)) {
                 console.log("Fallaste. Fin de la partida.");
                 correcto = false;
-                break;
             }
         }
 
-        if (!correcto) break;
+        if (!correcto) {
+            seguirJugando = false;
+        } else {
+            console.log("¡Correcto! Pasas a la siguiente ronda.");
+            longitudActual++;
 
-        console.log("✔️ ¡Correcto! Pasas a la siguiente ronda.");
-        longitudActual++;
-
-        if (longitudActual > MAX_COLORES_SEQ) {
-            console.log("🏆 ¡Has ganado el juego completo!");
-            break;
+            if (longitudActual > MAX_COLORES_SEQ) {
+                console.log("🏆 ¡Has ganado el juego completo!");
+                seguirJugando = false;
+            }
         }
     }
 
     rl.close();
 }
-
-
-
 
 const rl = readline.createInterface({
     input: process.stdin,
